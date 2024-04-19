@@ -1,46 +1,87 @@
+console.log("LOCAL CONFIG LOADED");
+
 window.config = {
-  // default: '/'
   routerBasename: '/',
   extensions: [],
+  modes: [],
+  customizationService: {
+    dicomUploadComponent:
+      '@ohif/extension-cornerstone.customizationModule.cornerstoneDicomUploadComponent',
+  },
   showStudyList: true,
-  filterQueryParam: false,
-  servers: {
-    dicomWeb: [
-      {
-        name: 'Orthanc',
+  maxNumberOfWebWorkers: 3,
+  showLoadingIndicator: true,
+  showWarningMessageForCrossOrigin: true,
+  showCPUFallbackMessage: true,
+  strictZSpacingForVolumeViewport: true,
+  // filterQueryParam: false,
+  defaultDataSourceName: 'dicomweb',
+  dataSources: [
+    {
+      friendlyName: 'dcmjs DICOMWeb Server',
+      namespace: '@ohif/extension-default.dataSourcesModule.dicomweb',
+      sourceName: 'dicomweb',
+      configuration: {
+        name: 'DCM4CHEE',
         wadoUriRoot: '/orthanc/wado',
         qidoRoot: '/orthanc/dicom-web',
         wadoRoot: '/orthanc/dicom-web',
         qidoSupportsIncludeField: true,
+        supportsReject: true,
         imageRendering: 'wadors',
         thumbnailRendering: 'wadors',
         enableStudyLazyLoad: true,
+        useBulkDataURI: false,
         supportsFuzzyMatching: true,
+        supportsWildcard: true,
+        dicomUploadEnabled: true, // Set to true to enable DICOM upload
       },
-    ],
+    },
+    {
+      friendlyName: 'dicom json',
+      namespace: '@ohif/extension-default.dataSourcesModule.dicomjson',
+      sourceName: 'dicomjson',
+      configuration: {
+        name: 'json',
+      },
+    },
+    {
+      friendlyName: 'dicom local',
+      namespace: '@ohif/extension-default.dataSourcesModule.dicomlocal',
+      sourceName: 'dicomlocal',
+      configuration: {},
+    },
+  ],
+  httpErrorHandler: error => {
+    // This is 429 when rejected from the public idc sandbox too often.
+    console.warn(error.status);
+
+    // Could use services manager here to bring up a dialog/modal if needed.
+    console.warn('test, navigate to https://ohif.org/');
   },
   whiteLabeling: {
-    /* Used to replace the default Logo */
     createLogoComponentFn: function(React) {
-      return React.createElement('a', {
-        target: '_self',
-        rel: 'noopener noreferrer',
-        className: 'header-brand',
-        href: '/',
-        style: {
-          display: 'block',
-          background: 'url(/logo.png)',
-          backgroundSize: 'contain',
-          backgroundRepeat: 'no-repeat',
-          width: '200px',
+      return React.createElement(
+        'a',
+        {
+          target: '_self',
+          rel: 'noopener noreferrer',
+          className: 'header-brand',
+          href: '/',
         },
-      });
+        React.createElement('img', {
+          src: './logo.png',
+          style: {
+            display: 'block',
+            backgroundSize: 'contain',
+            backgroundRepeat: 'no-repeat',
+            width: '200px',
+          },
+        })
+      );
     },
   },
-  // Extensions should be able to suggest default values for these?
-  // Or we can require that these be explicitly set
   hotkeys: [
-    // ~ Global
     {
       commandName: 'incrementActiveViewport',
       label: 'Next Viewport',
@@ -51,8 +92,6 @@ window.config = {
       label: 'Previous Viewport',
       keys: ['left'],
     },
-    // Supported Keys: https://craig.is/killing/mice
-    // ~ Cornerstone Extension
     { commandName: 'rotateViewportCW', label: 'Rotate Right', keys: ['r'] },
     { commandName: 'rotateViewportCCW', label: 'Rotate Left', keys: ['l'] },
     { commandName: 'invertViewport', label: 'Invert', keys: ['i'] },
@@ -70,11 +109,8 @@ window.config = {
     { commandName: 'scaleDownViewport', label: 'Zoom Out', keys: ['-'] },
     { commandName: 'fitViewportToWindow', label: 'Zoom to Fit', keys: ['='] },
     { commandName: 'resetViewport', label: 'Reset', keys: ['space'] },
-    // clearAnnotations
     { commandName: 'nextImage', label: 'Next Image', keys: ['down'] },
     { commandName: 'previousImage', label: 'Previous Image', keys: ['up'] },
-    // firstImage
-    // lastImage
     {
       commandName: 'previousViewportDisplaySet',
       label: 'Previous Series',
@@ -85,7 +121,6 @@ window.config = {
       label: 'Next Series',
       keys: ['pageup'],
     },
-    // ~ Cornerstone Tools
     { commandName: 'setZoomTool', label: 'Zoom', keys: ['z'] },
     // ~ Window level presets
     {
@@ -134,9 +169,4 @@ window.config = {
       keys: ['9'],
     },
   ],
-  cornerstoneExtensionConfig: {},
-
-  // studyListFunctionsEnabled is set to true to enable DICOM uploading
-  studyListFunctionsEnabled: true
-  
 };
