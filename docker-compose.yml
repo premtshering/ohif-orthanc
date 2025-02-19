@@ -9,6 +9,8 @@ services:
     volumes:
       - ./orthanc.json:/etc/orthanc/orthanc.json:ro
       - ./orthanc_db:/var/lib/orthanc/db/
+      - /Users/msi/Desktop/temp_outputs:/var/lib/orthanc/import
+      - ./scripts:/scripts
     restart: always
     networks:
       - pacs
@@ -28,6 +30,22 @@ services:
     networks:
       - pacs
 
+  python_restapi:
+    container_name: python
+    image: python:3.7
+    build: .
+    volumes:
+      - ./scripts:/scripts
+      - /Users/msi/Desktop/temp_outputs:/var/lib/orthanc/import
+    command: >
+      bash -c "apt-get update && apt-get install -y curl && 
+      pip install watchdog requests && 
+      python3 /scripts/watch_import.py"
+    networks:
+      - pacs
+    depends_on: [ pacs, ]
+
 networks:
   pacs:
     external: true
+    driver: bridge
